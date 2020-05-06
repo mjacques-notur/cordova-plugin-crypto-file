@@ -1,4 +1,5 @@
 module.exports = function(context) {
+  console.log('des');
   var path = require('path'),
     fs = require('fs'),
     crypto = require('crypto'),
@@ -19,8 +20,9 @@ module.exports = function(context) {
 
   context.opts.platforms
     .filter(function(platform) {
-      var pluginInfo = context.opts.plugin.pluginInfo;
-      return pluginInfo.getPlatformsArray().indexOf(platform) > -1;
+      console.log(context.opts.cordova);
+      return context.opts.platforms;
+      //return pluginInfo.getPlatformsArray().indexOf(platform) > -1;
     })
     .forEach(function(platform) {
       var platformPath = path.join(projectRoot, 'platforms', platform);
@@ -102,9 +104,7 @@ module.exports = function(context) {
 
   function loadCryptFileTargets() {
     var xmlHelpers = context.requireCordovaModule('cordova-common').xmlHelpers;
-
-    var pluginXml = path.join(context.opts.plugin.dir, 'plugin.xml');
-
+    var pluginXml = path.join('plugins/cordova-plugin-crypto-file', 'plugin.xml');
     var include = [];
     var exclude = [];
 
@@ -181,6 +181,7 @@ module.exports = function(context) {
   }
 
   function replaceCryptKey_android(pluginDir, key, iv) {
+    console.log('decrypt');
     var sourceFile = path.join(pluginDir, 'com/crypt/cordova/DecryptResource.java');
     var content = fs.readFileSync(sourceFile, 'utf-8');
 
