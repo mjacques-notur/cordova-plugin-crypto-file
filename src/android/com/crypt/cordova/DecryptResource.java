@@ -27,7 +27,7 @@ public class DecryptResource extends CordovaPlugin {
 
   private static final String CRYPT_KEY = "";
   private static final String CRYPT_IV = "";
-  private static final boolean IsRelease = false;
+  private static final Boolean isRelease = false;
 
   private static final String[] CRYPT_FILES = {
     ".htm",
@@ -56,8 +56,8 @@ public class DecryptResource extends CordovaPlugin {
 
   @Override
   public CordovaResourceApi.OpenForReadResult handleOpenForRead(Uri uri) throws IOException {
-    CordovaResourceApi.OpenForReadResult res = super.handleOpenForRead(uri);
-    if(IsRelease == true){
+    CordovaResourceApi.OpenForReadResult  res = super.handleOpenForRead(uri);
+    if(isRelease){
       Uri oriUri    = fromPluginUri(uri);
       String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
       CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
@@ -94,17 +94,17 @@ public class DecryptResource extends CordovaPlugin {
       return new CordovaResourceApi.OpenForReadResult(
         readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
     }
-
-    private String tofileUri(String uri) {
-      if (uri.startsWith(URL_PREFIX)) {
-        uri = uri.replace(URL_PREFIX, "file:///android_asset/www/");
-      }
-      if (uri.endsWith("/")) {
-        uri += "index.html";
-      }
-      return uri;
-    }
     return res;
+  }
+
+  private String tofileUri(String uri) {
+    if (uri.startsWith(URL_PREFIX)) {
+      uri = uri.replace(URL_PREFIX, "file:///android_asset/www/");
+    }
+    if (uri.endsWith("/")) {
+      uri += "index.html";
+    }
+    return uri;
   }
 
   private boolean isCryptFiles(String uri) {
