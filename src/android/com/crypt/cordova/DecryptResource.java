@@ -27,6 +27,7 @@ public class DecryptResource extends CordovaPlugin {
 
   private static final String CRYPT_KEY = "";
   private static final String CRYPT_IV = "";
+  private static final boolean IsRelease = false;
 
   private static final String[] CRYPT_FILES = {
     ".htm",
@@ -55,53 +56,55 @@ public class DecryptResource extends CordovaPlugin {
 
   @Override
   public CordovaResourceApi.OpenForReadResult handleOpenForRead(Uri uri) throws IOException {
-    super.handleOpenForRead(uri);
-    break;
-    Uri oriUri    = fromPluginUri(uri);
-    String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
-    CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
+    CordovaResourceApi.OpenForReadResult res = super.handleOpenForRead(uri);
+    if(IsRelease == true){
+      Uri oriUri    = fromPluginUri(uri);
+      String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
+      CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
 
-    if (!isCryptFiles(uriStr)) {
-      return readResult;
+      if (!isCryptFiles(uriStr)) {
+        return readResult;
+      }
+
+      BufferedReader br  = new BufferedReader(new InputStreamReader(readResult.inputStream));
+      StringBuilder strb = new StringBuilder();
+      String line = null;
+      while ((line = br.readLine()) != null) {
+        strb.append(line);
+      }
+      br.close();
+
+      byte[] bytes = Base64.decode(strb.toString(), Base64.DEFAULT);
+
+      LOG.d(TAG, "decrypt: " + uriStr);
+      ByteArrayInputStream byteInputStream = null;
+      try {
+        SecretKey skey = new SecretKeySpec(CRYPT_KEY.getBytes("UTF-8"), "AES");
+        Cipher cipher  = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, skey, new IvParameterSpec(CRYPT_IV.getBytes("UTF-8")));
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bos.write(cipher.doFinal(bytes));
+        byteInputStream = new ByteArrayInputStream(bos.toByteArray());
+
+      } catch (Exception ex) {
+        LOG.e(TAG, ex.getMessage());
+      }
+
+      return new CordovaResourceApi.OpenForReadResult(
+        readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
     }
 
-    BufferedReader br  = new BufferedReader(new InputStreamReader(readResult.inputStream));
-    StringBuilder strb = new StringBuilder();
-    String line = null;
-    while ((line = br.readLine()) != null) {
-      strb.append(line);
+    private String tofileUri(String uri) {
+      if (uri.startsWith(URL_PREFIX)) {
+        uri = uri.replace(URL_PREFIX, "file:///android_asset/www/");
+      }
+      if (uri.endsWith("/")) {
+        uri += "index.html";
+      }
+      return uri;
     }
-    br.close();
-
-    byte[] bytes = Base64.decode(strb.toString(), Base64.DEFAULT);
-
-    LOG.d(TAG, "decrypt: " + uriStr);
-    ByteArrayInputStream byteInputStream = null;
-    try {
-      SecretKey skey = new SecretKeySpec(CRYPT_KEY.getBytes("UTF-8"), "AES");
-      Cipher cipher  = Cipher.getInstance("AES/CBC/PKCS5Padding");
-      cipher.init(Cipher.DECRYPT_MODE, skey, new IvParameterSpec(CRYPT_IV.getBytes("UTF-8")));
-
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      bos.write(cipher.doFinal(bytes));
-      byteInputStream = new ByteArrayInputStream(bos.toByteArray());
-
-    } catch (Exception ex) {
-      LOG.e(TAG, ex.getMessage());
-    }
-
-    return new CordovaResourceApi.OpenForReadResult(
-      readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
-  }
-
-  private String tofileUri(String uri) {
-    if (uri.startsWith(URL_PREFIX)) {
-      uri = uri.replace(URL_PREFIX, "file:///android_asset/www/");
-    }
-    if (uri.endsWith("/")) {
-      uri += "index.html";
-    }
-    return uri;
+    return res;
   }
 
   private boolean isCryptFiles(String uri) {
