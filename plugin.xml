@@ -35,12 +35,12 @@
 
     <cryptfiles>
         <include>
-            <file regex="\.(htm|html|js|css)$" />
+            <file regex="" /><!-- \.(htm|html|js|css)$ -->
         </include>
         <exclude>
         </exclude>
     </cryptfiles>
 
-    <hook type="after_prepare" src="hooks/after_prepare.js" />
+    <!--<hook type="after_prepare" src="hooks/after_prepare.js" />-->
 
 </plugin>

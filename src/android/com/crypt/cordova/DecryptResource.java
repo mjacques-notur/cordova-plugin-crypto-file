@@ -43,7 +43,7 @@ public class DecryptResource extends CordovaPlugin {
     URL_PREFIX       = "http://localhost/";
   }
 
-  @Override
+  /*@Override
   public Uri remapUri(Uri uri) {
     changingPort(preferences);
     this.launchUri = uri.toString();
@@ -51,10 +51,12 @@ public class DecryptResource extends CordovaPlugin {
       return this.toPluginUri(uri);
     }
     return uri;
-  }
+  }*/
 
   @Override
   public CordovaResourceApi.OpenForReadResult handleOpenForRead(Uri uri) throws IOException {
+    super.handleOpenForRead(uri);
+    break;
     Uri oriUri    = fromPluginUri(uri);
     String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
     CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
