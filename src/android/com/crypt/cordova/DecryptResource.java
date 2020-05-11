@@ -27,7 +27,7 @@ public class DecryptResource extends CordovaPlugin {
 
   private static final String CRYPT_KEY = "";
   private static final String CRYPT_IV = "";
-  private static final Boolean isRelease = false;
+  private static final Boolean isRelease = true;
 
   private static final String[] CRYPT_FILES = {
     ".htm",
@@ -44,7 +44,7 @@ public class DecryptResource extends CordovaPlugin {
     URL_PREFIX       = "http://localhost/";
   }
 
-  /*@Override
+  @Override
   public Uri remapUri(Uri uri) {
     changingPort(preferences);
     this.launchUri = uri.toString();
@@ -52,7 +52,7 @@ public class DecryptResource extends CordovaPlugin {
       return this.toPluginUri(uri);
     }
     return uri;
-  }*/
+  }
 
   @Override
   public CordovaResourceApi.OpenForReadResult handleOpenForRead(Uri uri) throws IOException {
@@ -61,11 +61,11 @@ public class DecryptResource extends CordovaPlugin {
       Uri oriUri    = fromPluginUri(uri);
       String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
       CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
-
+      Console.Log(uriStr);
       if (!isCryptFiles(uriStr)) {
         return readResult;
       }
-
+      Console.Log("pasoencr");
       BufferedReader br  = new BufferedReader(new InputStreamReader(readResult.inputStream));
       StringBuilder strb = new StringBuilder();
       String line = null;
@@ -75,22 +75,21 @@ public class DecryptResource extends CordovaPlugin {
       br.close();
 
       byte[] bytes = Base64.decode(strb.toString(), Base64.DEFAULT);
-
+      Console.Log(strb.toString());
       LOG.d(TAG, "decrypt: " + uriStr);
       ByteArrayInputStream byteInputStream = null;
       try {
         SecretKey skey = new SecretKeySpec(CRYPT_KEY.getBytes("UTF-8"), "AES");
         Cipher cipher  = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, skey, new IvParameterSpec(CRYPT_IV.getBytes("UTF-8")));
-
+        
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         bos.write(cipher.doFinal(bytes));
         byteInputStream = new ByteArrayInputStream(bos.toByteArray());
-
       } catch (Exception ex) {
         LOG.e(TAG, ex.getMessage());
       }
-
+      Console.Log(readResult.uri + " " + byteInputStream + " " + readResult.mimeType+ " " + readResult.length + " " + readResult.assetFd);
       return new CordovaResourceApi.OpenForReadResult(
         readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
     }
