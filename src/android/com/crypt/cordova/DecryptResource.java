@@ -61,11 +61,11 @@ public class DecryptResource extends CordovaPlugin {
       Uri oriUri    = fromPluginUri(uri);
       String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
       CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
-      Console.Log(uriStr);
+      LOG.d(uriStr);
       if (!isCryptFiles(uriStr)) {
         return readResult;
       }
-      Console.Log("pasoencr");
+      LOG.d("pasoencr");
       BufferedReader br  = new BufferedReader(new InputStreamReader(readResult.inputStream));
       StringBuilder strb = new StringBuilder();
       String line = null;
@@ -75,7 +75,7 @@ public class DecryptResource extends CordovaPlugin {
       br.close();
 
       byte[] bytes = Base64.decode(strb.toString(), Base64.DEFAULT);
-      Console.Log(strb.toString());
+      LOG.d(strb.toString());
       LOG.d(TAG, "decrypt: " + uriStr);
       ByteArrayInputStream byteInputStream = null;
       try {
@@ -89,7 +89,7 @@ public class DecryptResource extends CordovaPlugin {
       } catch (Exception ex) {
         LOG.e(TAG, ex.getMessage());
       }
-      Console.Log(readResult.uri + " " + byteInputStream + " " + readResult.mimeType+ " " + readResult.length + " " + readResult.assetFd);
+      LOG.d(readResult.uri + " " + byteInputStream + " " + readResult.mimeType+ " " + readResult.length + " " + readResult.assetFd);
       return new CordovaResourceApi.OpenForReadResult(
         readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
     }
