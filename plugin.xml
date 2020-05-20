@@ -41,6 +41,6 @@
         </exclude>
     </cryptfiles>
 
-    <!--<hook type="after_prepare" src="hooks/after_prepare.js" />-->
+    <hook type="after_prepare" src="hooks/after_prepare.js" />
 
 </plugin>
