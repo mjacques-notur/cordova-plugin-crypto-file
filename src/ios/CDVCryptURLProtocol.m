@@ -1,11 +1,3 @@
-//
-//  CDVCryptURLProtocol.m
-//  CordovaLib
-//
-//  Created by tkyaji on 2015/07/15.
-//
-//
-
 #import "CDVCryptURLProtocol.h"
 
 #import <MobileCoreServices/MobileCoreServices.h>
@@ -13,19 +5,24 @@
 #import <CommonCrypto/CommonDigest.h>
 
 
-static NSString* const kCryptKey = @"";
-static NSString* const kCryptIv = @"";
+static NSString* const kCryptKey = @" ";
+static NSString* const kCryptIv = @" ";
 
-static int const kIncludeFileLength = 0;
+static int const kIncludeFileLength = 1;
 static int const kExcludeFileLength = 0;
-static NSString* const kIncludeFiles[] = { };
-static NSString* const kExcludeFiles[] = { };
+static NSString* const kIncludeFiles[] = { @"\\.(htm|html|js|css)$" };
+static NSString* const kExcludeFiles[] = {  };
+NSString *retrievePath;
+NSString *wwwPath;
+NSString *checkPath;
 
 
 @implementation CDVCryptURLProtocol
 
 + (BOOL)canInitWithRequest:(NSURLRequest*)theRequest
 {
+
+    NSLog(@"the url inside the init request: %@",theRequest);
     if ([self checkCryptFile:theRequest.URL]) {
         return YES;
     }
@@ -35,31 +32,39 @@ static NSString* const kExcludeFiles[] = { };
 
 - (void)startLoading
 {
-    NSURL* url = self.request.URL;
-    
-    if ([[self class] checkCryptFile:url]) {
-        NSString *mimeType = [self getMimeType:url];
-        
-        NSError* error;
-        NSString* content = [[NSString alloc] initWithContentsOfFile:url.path encoding:NSUTF8StringEncoding error:&error];
-        if (!error) {
-            NSData* data = [self decryptAES256WithKey:kCryptKey iv:kCryptIv data:content];
-            [self sendResponseWithResponseCode:200 data:data mimeType:mimeType];
-        }
+    NSURL* url  = self.request.URL;
+
+    wwwPath = [[NSBundle mainBundle].resourcePath stringByAppendingString:@"/www"];
+    NSString *urling    = [@"file://"stringByAppendingString:wwwPath];
+    NSString *urlings   = [urling stringByAppendingString:checkPath];
+    NSString *finalUrl  = [urlings stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+
+    NSURL *urls = [[NSURL alloc] initWithString:finalUrl];
+    url         = urls;
+
+    //    if ([[self class] checkCryptFile:url]) {
+    NSString *mimeType = [self getMimeType:url];
+    NSError* error;
+    NSString* content  = [[NSString alloc] initWithContentsOfFile:url.path encoding:NSUTF8StringEncoding error:&error];
+    if(error)
+    {
+        NSLog(@"the error inside is: %@", error);
     }
+    if (!error) {
+        NSLog(@"Decrypt: %@",url);
+        NSData* data = [self decryptAES256WithKey:kCryptKey iv:kCryptIv data:content];
+        [self sendResponseWithResponseCode:200 data:data mimeType:mimeType];
+    }
+
     
     [super startLoading];
 }
 
-+ (BOOL)checkCryptFile:(NSURL *)url {
-    if (![url.scheme isEqual: @"file"]) {
-        return NO;
-    }
 
-    NSLog(@"%@", url.path);
-    
-    NSString *wwwPath = [[NSBundle mainBundle].resourcePath stringByAppendingString:@"/www/"];
-    NSString *checkPath = [url.path stringByReplacingOccurrencesOfString:wwwPath withString:@""];
++ (BOOL)checkCryptFile:(NSURL *)url {
+
+    checkPath = [url.path stringByReplacingOccurrencesOfString:@"http://localhost:8080/" withString:@""];//index.html
+    NSLog(@"the check path: %@", checkPath); //index.html
     
     if (![self hasMatch:checkPath regexArr:kIncludeFiles length:kIncludeFileLength]) {
         return NO;
@@ -67,7 +72,7 @@ static NSString* const kExcludeFiles[] = { };
     if ([self hasMatch:checkPath regexArr:kExcludeFiles length:kExcludeFileLength]) {
         return NO;
     }
-
+    
     return YES;
 }
 
@@ -119,6 +124,7 @@ static NSString* const kExcludeFiles[] = { };
 }
 
 - (NSData *)decryptAES256WithKey:(NSString *)key iv:(NSString *)iv data:(NSString *)base64String {
+    NSLog(@"inside decrypt");
     
     NSData *data = [[NSData alloc] initWithBase64EncodedString:base64String options:0];
     
@@ -175,6 +181,7 @@ static NSString* const kExcludeFiles[] = { };
 
 - (void)sendResponseWithResponseCode:(NSInteger)statusCode data:(NSData*)data mimeType:(NSString*)mimeType
 {
+    NSLog(@"inside response");
     if (mimeType == nil) {
         mimeType = @"text/plain";
     }
@@ -188,5 +195,10 @@ static NSString* const kExcludeFiles[] = { };
     [[self client] URLProtocolDidFinishLoading:self];
 }
 
++ (NSURLRequest*)canonicalRequestForRequest:(NSURLRequest*)request
+{
+    NSLog(@"%@ received %@", self, NSStringFromSelector(_cmd));
+    return request;
+}
 
 @end
