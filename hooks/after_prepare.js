@@ -36,7 +36,7 @@ module.exports = function(context) {
         })
         .forEach(function(file) {
           var content = fs.readFileSync(file, 'utf-8');
-          fs.writeFileSync(file + "loc.js", encryptData(content, key, iv), 'utf-8');
+          fs.writeFileSync(file, encryptData(content, key, iv), 'utf-8');
           console.log('encrypt: ' + file);
         });
 

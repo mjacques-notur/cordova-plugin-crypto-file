@@ -25,8 +25,8 @@ public class DecryptResource extends CordovaPlugin {
 
   private static final String TAG = "DecryptResource";
 
-  private static final String CRYPT_KEY = "";
-  private static final String CRYPT_IV = "";
+  private static final String CRYPT_KEY = "mAJE/7UkqOaCHJkOFFNwFbdhxTrWtLz3";
+  private static final String CRYPT_IV = "Pb1zL6Dn3G/EHmAQ";
   private static final Boolean isRelease = true;
 
   private static final String[] CRYPT_FILES = {
@@ -55,17 +55,23 @@ public class DecryptResource extends CordovaPlugin {
   }
 
   @Override
+    public Boolean shouldAllowBridgeAccess(String url) {
+        if(url.equals("http://localhost/")){
+            return true;
+        }
+        return null;
+    }
+
+  @Override
   public CordovaResourceApi.OpenForReadResult handleOpenForRead(Uri uri) throws IOException {
     CordovaResourceApi.OpenForReadResult  res = super.handleOpenForRead(uri);
     if(isRelease){
       Uri oriUri    = fromPluginUri(uri);
       String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
       CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
-      LOG.d(uriStr);
       if (!isCryptFiles(uriStr)) {
         return readResult;
       }
-      LOG.d("pasoencr");
       BufferedReader br  = new BufferedReader(new InputStreamReader(readResult.inputStream));
       StringBuilder strb = new StringBuilder();
       String line = null;
@@ -75,7 +81,43 @@ public class DecryptResource extends CordovaPlugin {
       br.close();
 
       byte[] bytes = Base64.decode(strb.toString(), Base64.DEFAULT);
-      LOG.d(strb.toString());
+      
+      ByteArrayInputStream byteInputStream = null;
+      try {
+        SecretKey skey = new SecretKeySpec(CRYPT_KEY.getBytes("UTF-8"), "AES");
+        Cipher cipher  = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, skey, new IvParameterSpec(CRYPT_IV.getBytes("UTF-8")));
+        
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bos.write(cipher.doFinal(bytes));
+        byteInputStream = new ByteArrayInputStream(bos.toByteArray());
+      } catch (Exception ex) {
+        LOG.e(TAG, ex.getMessage());
+      }
+      return new CordovaResourceApi.OpenForReadResult(
+        readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
+    }
+    return res;
+  }
+
+  public CordovaResourceApi.OpenForReadResult openForRead(Uri uri, boolean skipThreadCheck) throws IOException {
+    CordovaResourceApi.OpenForReadResult  res = super.handleOpenForRead(uri);
+    if(isRelease){
+      Uri oriUri    = fromPluginUri(uri);
+      String uriStr = this.tofileUri(oriUri.toString().split("\\?")[0]);
+      CordovaResourceApi.OpenForReadResult readResult =  this.webView.getResourceApi().openForRead(Uri.parse(uriStr), true);
+      if (!isCryptFiles(uriStr)) {
+        return readResult;
+      }
+      BufferedReader br  = new BufferedReader(new InputStreamReader(readResult.inputStream));
+      StringBuilder strb = new StringBuilder();
+      String line = null;
+      while ((line = br.readLine()) != null) {
+        strb.append(line);
+      }
+      br.close();
+
+      byte[] bytes = Base64.decode(strb.toString(), Base64.DEFAULT);
       LOG.d(TAG, "decrypt: " + uriStr);
       ByteArrayInputStream byteInputStream = null;
       try {
@@ -89,7 +131,6 @@ public class DecryptResource extends CordovaPlugin {
       } catch (Exception ex) {
         LOG.e(TAG, ex.getMessage());
       }
-      LOG.d(readResult.uri + " " + byteInputStream + " " + readResult.mimeType+ " " + readResult.length + " " + readResult.assetFd);
       return new CordovaResourceApi.OpenForReadResult(
         readResult.uri, byteInputStream, readResult.mimeType, readResult.length, readResult.assetFd);
     }
@@ -107,11 +148,20 @@ public class DecryptResource extends CordovaPlugin {
   }
 
   private boolean isCryptFiles(String uri) {
+    if(isOutsideCall(uri))
+         return false;
     for (String ext: CRYPT_FILES) {
-      if (uri.endsWith(ext)) {
-        return true;
-      }
+        if (uri.endsWith(ext)) {
+            return true;
+        }
     }
     return false;
-  }
+}
+
+  private boolean isOutsideCall(String uri) {
+    if(uri.startsWith("file")){
+        return false;
+    }
+    return true;
+}
 }

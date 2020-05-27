@@ -1,16 +1,45 @@
 {
-  "name": "cordova-plugin-crypto-file",
-  "version": "1.4.0",
-  "description": "This plugin to encrypt/decrypt the source files.",
-  "repository": {
+  "_from": "git+https://github.com/mjacques-notur/cordova-plugin-crypto-file.git",
+  "_id": "cordova-plugin-crypto-file@1.4.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/cordova-plugin-crypto-file",
+  "_phantomChildren": {},
+  "_requested": {
     "type": "git",
-    "url": "git+https://github.com/PeterHdd/cordova-plugin-crypto-file.git"
+    "raw": "https://github.com/mjacques-notur/cordova-plugin-crypto-file",
+    "rawSpec": "https://github.com/mjacques-notur/cordova-plugin-crypto-file",
+    "saveSpec": "git+https://github.com/mjacques-notur/cordova-plugin-crypto-file.git",
+    "fetchSpec": "https://github.com/mjacques-notur/cordova-plugin-crypto-file.git",
+    "gitCommittish": null
   },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "git+https://github.com/mjacques-notur/cordova-plugin-crypto-file.git#b6efae2ded6623d5ae014a4f7d2d9d0ee33634ee",
+  "_spec": "https://github.com/mjacques-notur/cordova-plugin-crypto-file",
+  "_where": "C:\\xampp\\htdocs\\app",
+  "author": {
+    "name": "PeterHdd"
+  },
+  "bugs": {
+    "url": "https://github.com/PeterHdd/cordova-plugin-crypto-file/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "This plugin to encrypt/decrypt the source files.",
+  "homepage": "https://github.com/PeterHdd/cordova-plugin-crypto-file#readme",
   "keywords": [
     "ecosystem:cordova",
     "cordova-android",
     "cordova-ios"
   ],
-  "author": "PeterHdd",
-  "license": "Apache version 2.0"
+  "license": "Apache version 2.0",
+  "name": "cordova-plugin-crypto-file",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeterHdd/cordova-plugin-crypto-file.git"
+  },
+  "version": "1.4.0"
 }
